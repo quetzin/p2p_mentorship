@@ -1,0 +1,75 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #F2F3F3;
+    margin: 0;
+    padding: 0;
+    color: #232F3E;
+}
+
+.container {
+    max-width: 600px;
+    margin: 50px auto;
+    background-color: white;
+    padding: 30px;
+    border: 3px solid #FF9900; /* Amazon orange border */
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center; /* Center all child elements */
+}
+
+label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* Center and size inputs */
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+    width: 80%;
+    padding: 12px;
+    margin: 10px 0 20px;
+    border: 1px solid #DDD;
+    border-radius: 6px;
+    font-size: 16px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+textarea {
+    resize: vertical;
+}
+
+/* Centered button */
+button {
+    background-color: #FF9900;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #e88c00;
+}
+
+input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+/* Center checkbox rows */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}

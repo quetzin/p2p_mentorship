@@ -1,0 +1,23 @@
+<head>
+    <title>Mentoring App</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<div class="container">
+<form method="POST">
+    <label>Who did you mentor today?</label><br>
+    {% for i in range(count) %}
+        <select name="mentee_{{ i }}">
+            <option value="yemiliar">Emiliano (yemiliar)</option>
+            <option value="behrmaso">Mason (behrmaso)</option>
+            <option value="ebienfai">Bach (ebienfai)</option>
+            <option value="ndayisgb">JJ (ndayisgb)</option>
+            <option value="shivonic">Nico (shivonic)</option>
+            <option value="zmaxlope">Max (zmaxlope)</option>
+            <option value="bsaustin">Austin (bsaustin)</option>
+            <option value="irmmoria">Navil (irmmoria)</option>
+            <option value="neemgrai">Grace (neemgrai)</option>
+        </select><br>
+    {% endfor %}
+    <button type="submit">Submit</button>
+</form>
+</div>
