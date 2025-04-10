@@ -1,8 +1,35 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for, send_file, jsonify
 import urllib.parse
+import json
+import os
+from datetime import datetime
+import pandas as pd
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'  
+app.secret_key = 'your_secret_key_here'
+
+SUBMISSIONS_FILE = "submissions.json"
+EXCEL_FILE = "submissions.xlsx"
+
+def load_submissions():
+    if os.path.exists(SUBMISSIONS_FILE):
+        with open(SUBMISSIONS_FILE, "r") as f:
+            return json.load(f)
+    return []
+
+def save_submission(data):
+    all_data = load_submissions()
+    all_data.append(data)
+    with open(SUBMISSIONS_FILE, "w") as f:
+        json.dump(all_data, f, indent=4)
+
+def generate_excel():
+    data = load_submissions()
+    if not data:
+        return None
+    df = pd.DataFrame(data)
+    df.to_excel(EXCEL_FILE, index=False)
+    return EXCEL_FILE
 
 @app.route('/')
 def login():
@@ -57,13 +84,23 @@ def final_questions():
 
 @app.route('/final_questions', methods=['POST'])
 def handle_final_submission():
-    session['specific_focus'] = request.form['specific_focus']
-    session['concerns'] = request.form['concerns']
+    data = {
+        "timestamp": datetime.now().isoformat(),
+        "login_initial": session.get('login_initial'),
+        "mentee_count": session.get('mentee_count'),
+        "mentees": session.get('mentees'),
+        "focus_areas": session.get('focus_areas'),
+        "specific_focus": request.form['specific_focus'],
+        "concerns": request.form['concerns']
+    }
+    save_submission(data)
+    session['specific_focus'] = data['specific_focus']
+    session['concerns'] = data['concerns']
     return redirect('/send_email')
 
 @app.route('/send_email')
 def send_email():
-    to = "detacins@amazon.com"  
+    to = "detacins@amazon.com"
     subject = "New Mentoring Session Submission"
 
     body = f"""A new mentoring session has been submitted:
@@ -78,6 +115,13 @@ Concerns: {session.get('concerns')}
 
     mailto_link = f"mailto:{to}?subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
     return render_template('send_email.html', mailto_link=mailto_link)
+
+@app.route('/download_excel')
+def download_excel():
+    filepath = generate_excel()
+    if filepath:
+        return send_file(filepath, as_attachment=True)
+    return "No data available to export."
 
 if __name__ == '__main__':
     app.run(debug=True)
