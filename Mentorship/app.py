@@ -63,7 +63,7 @@ def handle_final_submission():
 
 @app.route('/send_email')
 def send_email():
-    to = "qpimente@amazon.com"  #"detacins@amazon.com"  
+    to = "detacins@amazon.com"  
     subject = "New Mentoring Session Submission"
 
     body = f"""A new mentoring session has been submitted:
