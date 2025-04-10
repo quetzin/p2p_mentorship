@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, session, url_for
+import urllib.parse
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  
@@ -35,10 +36,13 @@ def handle_mentee_names():
 
 @app.route('/focus_areas')
 def focus_areas():
-    areas = ["Proper use of Personal Protective Equipment (PPE)", 
-             "Safe lifting techniques and ergonomics", 
-             "Hazard identification and reporting", "Emergency response procedures", 
-             "Emergency response procedures", "Equipment operation safety"]
+    areas = [
+        "Proper use of Personal Protective Equipment (PPE)",
+        "Safe lifting techniques and ergonomics",
+        "Hazard identification and reporting",
+        "Emergency response procedures",
+        "Equipment operation safety"
+    ]
     return render_template('focus_areas.html', areas=areas)
 
 @app.route('/focus_areas', methods=['POST'])
@@ -53,14 +57,27 @@ def final_questions():
 
 @app.route('/final_questions', methods=['POST'])
 def handle_final_submission():
-    session['login_final'] = request.form['login']
     session['specific_focus'] = request.form['specific_focus']
+    session['concerns'] = request.form['concerns']
+    return redirect('/send_email')
 
-    # Print collected data to console (can be replaced with DB insert)
-    print("Submission received:")
-    print(session)
+@app.route('/send_email')
+def send_email():
+    to = "qpimente@amazon.com"  #"detacins@amazon.com"  
+    subject = "New Mentoring Session Submission"
 
-    return "Thank you! Submission complete."
+    body = f"""A new mentoring session has been submitted:
+
+Initial Login: {session.get('login_initial')}
+Mentee Count: {session.get('mentee_count')}
+Mentees: {', '.join(session.get('mentees', []))}
+Focus Areas: {', '.join(session.get('focus_areas', []))}
+Specific Focus: {session.get('specific_focus')}
+Concerns: {session.get('concerns')}
+"""
+
+    mailto_link = f"mailto:{to}?subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
+    return render_template('send_email.html', mailto_link=mailto_link)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Send Email</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>You're almost done!</h2>
+        <p>Click the button below to open Outlook or your email app. Your message is already filled out — just hit Send!</p>
+        <a href="{{ mailto_link }}">
+            <button>Open Email in Outlook</button>
+        </a>
+    </div>
+</body>
+</html>
