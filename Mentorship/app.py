@@ -100,11 +100,13 @@ def handle_final_submission():
         "mentees": session.get('mentees'),
         "focus_areas": session.get('focus_areas'),
         "specific_focus": request.form['specific_focus'],
-        "concerns": request.form['concerns']
+        "concerns": request.form['concerns'],
+        "follow_up": request.form.get('follow_up', '')
     }
     save_submission(data)
     session['specific_focus'] = data['specific_focus']
     session['concerns'] = data['concerns']
+    session['follow_up'] = data['follow_up']
     return redirect('/send_email')
 
 @app.route('/send_email')
@@ -120,6 +122,7 @@ Mentees: {', '.join(session.get('mentees', []))}
 Focus Areas: {', '.join(session.get('focus_areas', []))}
 Specific Focus: {session.get('specific_focus')}
 Concerns: {session.get('concerns')}
+Follow Up: {session.get('follow_up')}
 """
 
     mailto_link = f"mailto:{urllib.parse.quote(to)}?subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
@@ -146,7 +149,8 @@ def add_submission():
         "mentees": request.form['mentees'].split(','),
         "focus_areas": request.form['focus_areas'].split(','),
         "specific_focus": request.form['specific_focus'],
-        "concerns": request.form['concerns']
+        "concerns": request.form['concerns'],
+        "follow_up": request.form.get('follow_up', '')
     }
     save_submission(data)
     return redirect('/submissions')
@@ -170,7 +174,8 @@ def edit_submission(index):
             "mentees": request.form['mentees'].split(','),
             "focus_areas": request.form['focus_areas'].split(','),
             "specific_focus": request.form['specific_focus'],
-            "concerns": request.form['concerns']
+            "concerns": request.form['concerns'],
+            "follow_up": request.form.get('follow_up', '')
         }
         save_all_submissions(data)
     return redirect('/submissions')
