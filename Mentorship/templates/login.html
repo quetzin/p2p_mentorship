@@ -9,7 +9,10 @@
         <button type="submit">Submit</button>
     </form>
 
-    <form method="GET" action="/download_excel" style="margin-top: 20px;">
-        <button type="submit">Download Submissions (Excel)</button>
-    </form>
+    <div style="margin-top: 20px;">
+        <a href="{{ url_for('view_submissions') }}">
+            <button type="button">View Submissions</button>
+        </a>
+    </div>
 </div>
+

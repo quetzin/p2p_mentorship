@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, url_for, send_file, jsonify
+from flask import Flask, render_template, request, redirect, session, url_for, send_file
 import urllib.parse
 import json
 import os
@@ -17,11 +17,14 @@ def load_submissions():
             return json.load(f)
     return []
 
+def save_all_submissions(data):
+    with open(SUBMISSIONS_FILE, "w") as f:
+        json.dump(data, f, indent=4)
+
 def save_submission(data):
     all_data = load_submissions()
     all_data.append(data)
-    with open(SUBMISSIONS_FILE, "w") as f:
-        json.dump(all_data, f, indent=4)
+    save_all_submissions(all_data)
 
 def generate_excel():
     data = load_submissions()
@@ -128,6 +131,49 @@ def download_excel():
     if filepath:
         return send_file(filepath, as_attachment=True)
     return "No data available to export."
+
+@app.route('/submissions')
+def view_submissions():
+    submissions = load_submissions()
+    return render_template('submissions.html', submissions=submissions)
+
+@app.route('/add_submission', methods=['POST'])
+def add_submission():
+    data = {
+        "timestamp": datetime.now().isoformat(),
+        "login_initial": request.form['login_initial'],
+        "mentee_count": int(request.form['mentee_count']),
+        "mentees": request.form['mentees'].split(','),
+        "focus_areas": request.form['focus_areas'].split(','),
+        "specific_focus": request.form['specific_focus'],
+        "concerns": request.form['concerns']
+    }
+    save_submission(data)
+    return redirect('/submissions')
+
+@app.route('/delete_submission/<int:index>', methods=['POST'])
+def delete_submission(index):
+    data = load_submissions()
+    if 0 <= index < len(data):
+        data.pop(index)
+        save_all_submissions(data)
+    return redirect('/submissions')
+
+@app.route('/edit_submission/<int:index>', methods=['POST'])
+def edit_submission(index):
+    data = load_submissions()
+    if 0 <= index < len(data):
+        data[index] = {
+            "timestamp": datetime.now().isoformat(),
+            "login_initial": request.form['login_initial'],
+            "mentee_count": int(request.form['mentee_count']),
+            "mentees": request.form['mentees'].split(','),
+            "focus_areas": request.form['focus_areas'].split(','),
+            "specific_focus": request.form['specific_focus'],
+            "concerns": request.form['concerns']
+        }
+        save_all_submissions(data)
+    return redirect('/submissions')
 
 if __name__ == '__main__':
     app.run(debug=True)
