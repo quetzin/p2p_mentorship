@@ -100,7 +100,7 @@ def handle_final_submission():
 
 @app.route('/send_email')
 def send_email():
-    to = "detacins@amazon.com"
+    to = "detacins@amazon.com; qpimente@amazon.com"
     subject = "New Mentoring Session Submission"
 
     body = f"""A new mentoring session has been submitted:
@@ -113,7 +113,7 @@ Specific Focus: {session.get('specific_focus')}
 Concerns: {session.get('concerns')}
 """
 
-    mailto_link = f"mailto:{to}?subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
+    mailto_link = f"mailto:{urllib.parse.quote(to)}?subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
     return render_template('send_email.html', mailto_link=mailto_link)
 
 @app.route('/download_excel')
