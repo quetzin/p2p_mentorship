@@ -60,7 +60,17 @@ def mentee_names():
 
 @app.route('/mentee_names', methods=['POST'])
 def handle_mentee_names():
-    mentees = [request.form.get(f'mentee_{i}') for i in range(session['mentee_count'])]
+    mentees = []
+    count = session.get('mentee_count', 0)
+    for i in range(count):
+        dropdown_value = request.form.get(f'mentee_{i}', '').strip()
+        custom_value = request.form.get(f'custom_mentee_{i}', '').strip()
+        if custom_value:
+            mentees.append(custom_value)
+        elif dropdown_value:
+            mentees.append(dropdown_value)
+        else:
+            mentees.append("Unknown")  # Fallback if both are empty
     session['mentees'] = mentees
     return redirect('/focus_areas')
 

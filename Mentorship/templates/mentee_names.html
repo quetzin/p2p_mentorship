@@ -6,7 +6,9 @@
 <form method="POST">
     <label>Who did you mentor today?</label><br>
     {% for i in range(count) %}
+        <label>Mentee {{ i+1 }}</label><br>
         <select name="mentee_{{ i }}">
+            <option value="">-- Select an amazon alias --</option>
             <option value="yemiliar">Emiliano (yemiliar)</option>
             <option value="behrmaso">Mason (behrmaso)</option>
             <option value="ebienfai">Bach (ebienfai)</option>
@@ -17,6 +19,7 @@
             <option value="irmmoria">Navil (irmmoria)</option>
             <option value="neemgrai">Grace (neemgrai)</option>
         </select><br>
+        <input type="text" name="custom_mentee_{{ i }}" placeholder="Or enter amazon alias"><br><br>
     {% endfor %}
     <button type="submit">Submit</button>
 </form>
