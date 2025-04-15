@@ -75,6 +75,12 @@ def focus_areas():
 @app.route('/focus_areas', methods=['POST'])
 def handle_focus_areas():
     selected = request.form.getlist('areas')
+    other_text = request.form.get('other_text')
+
+    if 'Other' in selected and other_text:
+        selected.remove('Other')
+        selected.append(other_text)
+
     session['focus_areas'] = selected
     return redirect('/final_questions')
 

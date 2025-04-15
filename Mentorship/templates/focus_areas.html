@@ -1,13 +1,23 @@
 <head>
     <title>Mentoring App</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        function toggleOtherInput(checkbox) {
+            var input = document.getElementById("other_input");
+            input.style.display = checkbox.checked ? "block" : "none";
+        }
+    </script>
 </head>
 <div class="container">
-<form method="POST">
-    <label>What areas did you focus on?</label><br>
-    {% for area in areas %}
-        <input type="checkbox" name="areas" value="{{ area }}">{{ area }}<br>
-    {% endfor %}
-    <button type="submit">Submit</button>
-</form>
+    <form method="POST">
+        <label>What areas did you focus on?</label><br>
+        {% for area in areas %}
+            <input type="checkbox" name="areas" value="{{ area }}">{{ area }}<br>
+        {% endfor %}
+
+        <input type="checkbox" name="areas" value="Other" onclick="toggleOtherInput(this)">Other<br>
+        <input type="text" name="other_text" id="other_input" placeholder="Please specify" style="display:none; margin-top: 5px;"><br>
+
+        <button type="submit">Submit</button>
+    </form>
 </div>
