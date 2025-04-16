@@ -2,3 +2,5 @@ Flask==2.3.3
 gunicorn
 pandas
 openpyxl
+pymongo
+dnspython

@@ -1,38 +1,48 @@
 from flask import Flask, render_template, request, redirect, session, url_for, send_file
-import urllib.parse
-import json
-import os
 from datetime import datetime
+from pymongo import MongoClient
 import pandas as pd
+import urllib.parse
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
-SUBMISSIONS_FILE = "submissions.json"
+# --- MongoDB Setup ---
+MONGO_URI = "mongodb+srv://quetzinpimentel:Nf4YkOpxXBY9q8Wf@submission.kjcoglb.mongodb.net/"
+client = MongoClient(MONGO_URI)
+db = client.mentorship
+submissions_col = db.submissions
+
 EXCEL_FILE = "submissions.xlsx"
 
-def load_submissions():
-    if os.path.exists(SUBMISSIONS_FILE):
-        with open(SUBMISSIONS_FILE, "r") as f:
-            return json.load(f)
-    return []
+# --- Utility Functions ---
 
-def save_all_submissions(data):
-    with open(SUBMISSIONS_FILE, "w") as f:
-        json.dump(data, f, indent=4)
+def fetch_all_submissions():
+    return list(submissions_col.find({}, {'_id': 0}))
 
-def save_submission(data):
-    all_data = load_submissions()
-    all_data.append(data)
-    save_all_submissions(all_data)
+def insert_submission(data):
+    submissions_col.insert_one(data)
+
+def update_submission(index, new_data):
+    all_data = fetch_all_submissions()
+    if 0 <= index < len(all_data):
+        query = all_data[index]
+        submissions_col.update_one(query, {"$set": new_data})
+
+def delete_submission(index):
+    all_data = fetch_all_submissions()
+    if 0 <= index < len(all_data):
+        submissions_col.delete_one(all_data[index])
 
 def generate_excel():
-    data = load_submissions()
+    data = fetch_all_submissions()
     if not data:
         return None
     df = pd.DataFrame(data)
     df.to_excel(EXCEL_FILE, index=False)
     return EXCEL_FILE
+
+# --- Routes ---
 
 @app.route('/')
 def login():
@@ -49,8 +59,7 @@ def mentee_count():
 
 @app.route('/mentee_count', methods=['POST'])
 def handle_mentee_count():
-    count = int(request.form['count'])
-    session['mentee_count'] = count
+    session['mentee_count'] = int(request.form['count'])
     return redirect('/mentee_names')
 
 @app.route('/mentee_names')
@@ -70,7 +79,7 @@ def handle_mentee_names():
         elif dropdown_value:
             mentees.append(dropdown_value)
         else:
-            mentees.append("Unknown")  # Fallback if both are empty
+            mentees.append("Unknown")
     session['mentees'] = mentees
     return redirect('/focus_areas')
 
@@ -89,11 +98,9 @@ def focus_areas():
 def handle_focus_areas():
     selected = request.form.getlist('areas')
     other_text = request.form.get('other_text')
-
     if 'Other' in selected and other_text:
         selected.remove('Other')
         selected.append(other_text)
-
     session['focus_areas'] = selected
     return redirect('/final_questions')
 
@@ -113,7 +120,7 @@ def handle_final_submission():
         "concerns": request.form['concerns'],
         "follow_up": request.form.get('follow_up', '')
     }
-    save_submission(data)
+    insert_submission(data)
     session['specific_focus'] = data['specific_focus']
     session['concerns'] = data['concerns']
     session['follow_up'] = data['follow_up']
@@ -123,7 +130,6 @@ def handle_final_submission():
 def send_email():
     to = "detacins@amazon.com; qpimente@amazon.com"
     subject = "New Mentoring Session Submission"
-
     body = f"""A new mentoring session has been submitted:
 
 Initial Login: {session.get('login_initial')}
@@ -134,7 +140,6 @@ Specific Focus: {session.get('specific_focus')}
 Concerns: {session.get('concerns')}
 Follow Up: {session.get('follow_up')}
 """
-
     mailto_link = f"mailto:{urllib.parse.quote(to)}?subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
     return render_template('send_email.html', mailto_link=mailto_link)
 
@@ -147,8 +152,7 @@ def download_excel():
 
 @app.route('/submissions')
 def view_submissions():
-    submissions = load_submissions()
-    return render_template('submissions.html', submissions=submissions)
+    return render_template('submissions.html', submissions=fetch_all_submissions())
 
 @app.route('/add_submission', methods=['POST'])
 def add_submission():
@@ -162,32 +166,27 @@ def add_submission():
         "concerns": request.form['concerns'],
         "follow_up": request.form.get('follow_up', '')
     }
-    save_submission(data)
+    insert_submission(data)
     return redirect('/submissions')
 
 @app.route('/delete_submission/<int:index>', methods=['POST'])
-def delete_submission(index):
-    data = load_submissions()
-    if 0 <= index < len(data):
-        data.pop(index)
-        save_all_submissions(data)
+def handle_delete(index):
+    delete_submission(index)
     return redirect('/submissions')
 
 @app.route('/edit_submission/<int:index>', methods=['POST'])
-def edit_submission(index):
-    data = load_submissions()
-    if 0 <= index < len(data):
-        data[index] = {
-            "timestamp": datetime.now().isoformat(),
-            "login_initial": request.form['login_initial'],
-            "mentee_count": int(request.form['mentee_count']),
-            "mentees": request.form['mentees'].split(','),
-            "focus_areas": request.form['focus_areas'].split(','),
-            "specific_focus": request.form['specific_focus'],
-            "concerns": request.form['concerns'],
-            "follow_up": request.form.get('follow_up', '')
-        }
-        save_all_submissions(data)
+def handle_edit(index):
+    new_data = {
+        "timestamp": datetime.now().isoformat(),
+        "login_initial": request.form['login_initial'],
+        "mentee_count": int(request.form['mentee_count']),
+        "mentees": request.form['mentees'].split(','),
+        "focus_areas": request.form['focus_areas'].split(','),
+        "specific_focus": request.form['specific_focus'],
+        "concerns": request.form['concerns'],
+        "follow_up": request.form.get('follow_up', '')
+    }
+    update_submission(index, new_data)
     return redirect('/submissions')
 
 if __name__ == '__main__':
